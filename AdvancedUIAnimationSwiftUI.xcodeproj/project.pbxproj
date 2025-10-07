@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EA92D4B22E952AE1004648BC /* CompassView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA92D4B12E952AE1004648BC /* CompassView.swift */; };
 		EAD0FB972E950C0C00BB8ACC /* AdvancedUIAnimationSwiftUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD0FB962E950C0C00BB8ACC /* AdvancedUIAnimationSwiftUIApp.swift */; };
 		EAD0FB992E950C0C00BB8ACC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD0FB982E950C0C00BB8ACC /* ContentView.swift */; };
 		EAD0FB9B2E950C0E00BB8ACC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAD0FB9A2E950C0E00BB8ACC /* Assets.xcassets */; };
@@ -34,6 +35,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		EA92D4B12E952AE1004648BC /* CompassView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompassView.swift; sourceTree = "<group>"; };
 		EAD0FB932E950C0C00BB8ACC /* AdvancedUIAnimationSwiftUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AdvancedUIAnimationSwiftUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAD0FB962E950C0C00BB8ACC /* AdvancedUIAnimationSwiftUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedUIAnimationSwiftUIApp.swift; sourceTree = "<group>"; };
 		EAD0FB982E950C0C00BB8ACC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 			isa = PBXGroup;
 			children = (
 				EAD0FB962E950C0C00BB8ACC /* AdvancedUIAnimationSwiftUIApp.swift */,
+				EA92D4B12E952AE1004648BC /* CompassView.swift */,
 				EAD0FB982E950C0C00BB8ACC /* ContentView.swift */,
 				EAD0FB9A2E950C0E00BB8ACC /* Assets.xcassets */,
 				EAD0FB9C2E950C0E00BB8ACC /* Preview Content */,
@@ -257,6 +260,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA92D4B22E952AE1004648BC /* CompassView.swift in Sources */,
 				EAD0FB992E950C0C00BB8ACC /* ContentView.swift in Sources */,
 				EAD0FB972E950C0C00BB8ACC /* AdvancedUIAnimationSwiftUIApp.swift in Sources */,
 			);
