@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreMotion
 
 // MARK: - Theme
 private extension Color {
@@ -19,6 +20,8 @@ struct CompassView: View {
     @State private var autoRotationDegrees: Double = 0
     @State private var isAutoRotating: Bool = true
     @GestureState private var dragRotationDelta: Double = 0
+    @StateObject private var motion = MotionManager()
+    @GestureState private var tiltDrag: CGSize = .zero
 
     private let ringGradient = AngularGradient(
         gradient: Gradient(colors: [Color.radarNeon.opacity(0.9), Color.radarNeon.opacity(0.2), Color.radarNeon.opacity(0.9)]),
@@ -75,11 +78,17 @@ struct CompassView: View {
                     )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // 3D tilt based on device motion (with simulator drag fallback)
+            .rotation3DEffect(.degrees(currentPitchDegrees), axis: (x: 1, y: 0, z: 0), perspective: 0.6)
+            .rotation3DEffect(.degrees(currentRollDegrees), axis: (x: 0, y: 1, z: 0), perspective: 0.6)
+            .gesture(tiltGesture())
         }
         .background(Color.militaryGreenDeep)
         .onAppear {
             startAutoRotation()
+            motion.start()
         }
+        .onDisappear { motion.stop() }
         .onTapGesture {
             withAnimation(.easeInOut(duration: 0.6)) {
                 isAutoRotating.toggle()
@@ -98,6 +107,26 @@ struct CompassView: View {
             .padding(.bottom, 24)
         }
         .accessibilityLabel("Animated compass")
+    }
+
+    // MARK: Tilt helpers
+    private var currentPitchDegrees: Double {
+        if motion.isAvailable { return motion.pitchDegrees }
+        // Simulator: map vertical drag to pitch
+        return Double(-tiltDrag.height / 4).clamped(to: -18...18)
+    }
+
+    private var currentRollDegrees: Double {
+        if motion.isAvailable { return motion.rollDegrees }
+        // Simulator: map horizontal drag to roll
+        return Double(tiltDrag.width / 4).clamped(to: -18...18)
+    }
+
+    private func tiltGesture() -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .updating($tiltDrag) { value, state, _ in
+                state = value.translation
+            }
     }
 
     private func startAutoRotation() {
@@ -220,6 +249,46 @@ private struct Arrow: Shape {
         path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
         path.closeSubpath()
         return path
+    }
+}
+
+// MARK: - Motion
+private final class MotionManager: ObservableObject {
+    private let manager = CMMotionManager()
+    private let queue = OperationQueue()
+
+    @Published var pitchDegrees: Double = 0
+    @Published var rollDegrees: Double = 0
+
+    var isAvailable: Bool { manager.isDeviceMotionAvailable }
+
+    func start() {
+        guard manager.isDeviceMotionAvailable else { return }
+        manager.deviceMotionUpdateInterval = 1.0 / 50.0
+        manager.startDeviceMotionUpdates(using: .xArbitraryZVertical, to: queue) { [weak self] motion, _ in
+            guard let self, let m = motion else { return }
+            // Clamp and smooth a bit
+            let pitch = m.attitude.pitch * 180 / .pi
+            let roll = m.attitude.roll * 180 / .pi
+            let clampedPitch = pitch.clamped(to: -22...22)
+            let clampedRoll = roll.clamped(to: -22...22)
+            DispatchQueue.main.async {
+                withAnimation(.easeOut(duration: 0.12)) {
+                    self.pitchDegrees = clampedPitch
+                    self.rollDegrees = clampedRoll
+                }
+            }
+        }
+    }
+
+    func stop() {
+        manager.stopDeviceMotionUpdates()
+    }
+}
+
+private extension Comparable {
+    func clamped(to limits: ClosedRange<Self>) -> Self {
+        min(max(self, limits.lowerBound), limits.upperBound)
     }
 }
 
