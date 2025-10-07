@@ -19,6 +19,7 @@ struct CompassView: View {
     @State private var autoRotationDegrees: Double = 0
     @State private var isAutoRotating: Bool = true
     @GestureState private var dragRotationDelta: Double = 0
+    @StateObject private var compass = CompassService()
 
     private let ringGradient = AngularGradient(
         gradient: Gradient(colors: [Color.radarNeon.opacity(0.9), Color.radarNeon.opacity(0.2), Color.radarNeon.opacity(0.9)]),
@@ -55,7 +56,7 @@ struct CompassView: View {
                         .shadow(color: Color.radarNeon.opacity(0.6), radius: size * 0.02)
                 }
                 .padding(size * 0.08)
-                .rotationEffect(.degrees(autoRotationDegrees + dragRotationDelta))
+                .rotationEffect(.degrees(compassRotation + dragRotationDelta))
                 .contentShape(Circle())
                 .gesture(rotationDragGesture(size: size))
                 .animation(.spring(response: 0.4, dampingFraction: 0.7), value: dragRotationDelta)
@@ -80,6 +81,7 @@ struct CompassView: View {
         .background(Color.militaryGreenDeep)
         .onAppear {
             startAutoRotation()
+            compass.start()
         }
         .onTapGesture {
             withAnimation(.easeInOut(duration: 0.6)) {
@@ -122,6 +124,20 @@ struct CompassView: View {
             .onChanged { _ in
                 if isAutoRotating { isAutoRotating = false }
             }
+    }
+
+    // MARK: Heading source
+    private var compassRotation: Double {
+        if isAutoRotating { return autoRotationDegrees }
+        if compass.isAvailable { return -normalize(compass.headingDegrees) }
+        return autoRotationDegrees
+    }
+
+    private func normalize(_ degrees: Double) -> Double {
+        var d = degrees.truncatingRemainder(dividingBy: 360)
+        if d > 180 { d -= 360 }
+        if d < -180 { d += 360 }
+        return d
     }
 }
 
@@ -175,8 +191,8 @@ private struct CardinalLabels: View {
                 Text(text)
                     .kerning(1)
                     .position(
-                        x: proxy.size.width / 2 + cos(CGFloat(angle) * .pi / 180) * (radius * 0.78),
-                        y: proxy.size.height / 2 + sin(CGFloat(angle) * .pi / 180) * (radius * 0.78)
+                        x: proxy.size.width / 2 + cos((CGFloat(angle) - 90) * .pi / 180) * (radius * 0.78),
+                        y: proxy.size.height / 2 + sin((CGFloat(angle) - 90) * .pi / 180) * (radius * 0.78)
                     )
             }
         }
