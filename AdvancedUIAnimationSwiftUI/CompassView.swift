@@ -60,14 +60,14 @@ struct CompassView: View {
                 .gesture(rotationDragGesture(size: size))
                 .animation(.spring(response: 0.4, dampingFraction: 0.7), value: dragRotationDelta)
 
-                // Fixed needle with glow
-                NeedleView()
-                    .frame(width: size * 0.06)
-                    .shadow(color: Color.radarNeon.opacity(0.75), radius: size * 0.06)
+                // Fixed needle with glow (two compact arrows from center ring)
+                NeedleView(centerDiameter: size * 0.09)
+                    .frame(width: size * 0.04, height: size * 0.48)
+                    .shadow(color: Color.radarNeon.opacity(0.4), radius: size * 0.02)
 
-                // Center cap
+                // Center cap (solid black to hide arrow edges)
                 Circle()
-                    .fill(.black.opacity(0.6))
+                    .fill(.black)
                     .frame(width: size * 0.09, height: size * 0.09)
                     .overlay(
                         Circle()
@@ -183,23 +183,55 @@ private struct CardinalLabels: View {
 }
 
 private struct NeedleView: View {
+    let centerDiameter: CGFloat
+
     var body: some View {
-        VStack(spacing: 0) {
-            Capsule()
-                .fill(LinearGradient(colors: [Color.radarNeon, .white.opacity(0.9)], startPoint: .top, endPoint: .bottom))
-                .frame(height: 160)
-                .overlay(
-                    Capsule()
-                        .stroke(Color.radarNeon.opacity(0.8), lineWidth: 1)
-                )
-            Circle()
-                .fill(Color.radarNeon)
-                .frame(width: 8, height: 8)
-            Capsule()
-                .fill(LinearGradient(colors: [.black.opacity(0.9), .militaryGreenDeep.opacity(0.8)], startPoint: .top, endPoint: .bottom))
-                .frame(height: 60)
+        GeometryReader { proxy in
+            let totalHeight = proxy.size.height
+            let innerGap = centerDiameter * 0.60 // keep arrows clearly outside center ring
+            let arrowLength = (totalHeight - innerGap) / 2
+
+            VStack(spacing: innerGap) {
+                // North arrow (lighter green)
+                Arrow()
+                    .fill(Color.radarNeon.opacity(0.95))
+                    .frame(height: arrowLength)
+                    .overlay(Arrow().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+
+                // South arrow (darker green)
+                Arrow()
+                    .fill(Color.radarNeon.opacity(0.6))
+                    .frame(height: arrowLength)
+                    .rotationEffect(.degrees(180))
+                    .overlay(Arrow().stroke(Color.white.opacity(0.25), lineWidth: 0.5).rotationEffect(.degrees(180)))
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxHeight: .infinity)
+    }
+}
+
+// Slender arrow shape with a short base
+private struct Arrow: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        // Simple isosceles triangle wedge
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+// Simple isosceles triangle pointing up by default
+private struct Triangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
     }
 }
 
